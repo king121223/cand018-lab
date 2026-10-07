@@ -11,13 +11,13 @@ p("== session ok")
 
 // 1. Authenticate the local node with the disposable admin (set via dscl before running).
 let node: ODNode
-do { node = try ODNode(session: session!, type: .local) ; p("== node /Local/Default opened") }
+do { node = try ODNode(session: session!, type: ODNodeType(kODNodeTypeLocalNodes)) ; p("== node /Local/Default opened") }
 catch { p("!! node open failed: \(error)"); exit(1) }
 
 let user = ProcessInfo.processInfo.environment["LAB_USER"] ?? "runner"
 let pass = ProcessInfo.processInfo.environment["LAB_PASS"] ?? "LabPass123!"
 do {
-    try node.setCredentials(withRecordType: .users, recordName: user, password: pass)
+    try node.setCredentialsWithRecordType(kODRecordTypeUsers, recordName: user, password: pass)
     p("== node authenticated as \(user)")
 } catch { p("!! node auth failed: \(error) — writes below will likely be denied"); }
 
