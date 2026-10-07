@@ -65,7 +65,8 @@ do {
 // T6: read another user's protected attributes as non-admin
 do {
     let victim = try node.record(withRecordType: kODRecordTypeUsers, name: "labadmin", attributes: nil)
-    for a in [kODAttributeTypeShadowHash, kODAttributeTypeAuthenticationAuthority] {
+    let protectedAttrs: [String] = ["dsAttrTypeStandard:ShadowHash", "dsAttrTypeStandard:AuthenticationAuthority"]
+    for a in protectedAttrs {
         let v = try? victim.values(forAttribute: a)
         p("T6[\(role)] labadmin.\(a) = \(v.map { "\($0.count) values" } ?? "unreadable")")
     }
