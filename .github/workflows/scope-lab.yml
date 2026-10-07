@@ -1,0 +1,27 @@
+name: cand013-scope-lab
+on: workflow_dispatch
+jobs:
+  lab:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create disposable admin and standard user
+        run: |
+          sudo sysadminctl -addUser labadmin -password 'LabPass123!' -admin || true
+          sudo sysadminctl -addUser labuser -password 'LabPass456!' || true
+      - name: Compile boundary probe
+        run: swiftc -O lab/od_scope2.swift -o od_scope2
+      - name: Run as NON-ADMIN (labuser) — the actual privilege-boundary test
+        env:
+          LAB_USER: labuser
+          LAB_PASS: LabPass456!
+          LAB_ADMIN: "0"
+        run: ./od_scope2
+      - name: Run as ADMIN (labadmin) — control group
+        env:
+          LAB_USER: labadmin
+          LAB_PASS: LabPass123!
+          LAB_ADMIN: "1"
+        run: ./od_scope2
+      - name: Build info
+        run: sw_vers
