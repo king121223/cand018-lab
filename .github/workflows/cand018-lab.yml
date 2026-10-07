@@ -5,13 +5,14 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set disposable admin password
-        run: sudo dscl . -passwd /Users/runner 'LabPass123!'
+      - name: Create disposable admin (known password)
+        run: |
+          sudo sysadminctl -addUser labadmin -password 'LabPass123!' -admin || echo "sysadminctl failed (probe will report auth)"
       - name: Compile OD probe
         run: swiftc -O lab/od_probe.swift -o od_probe
       - name: Run OD probe (CAND-018 record-type experiment)
         env:
-          LAB_USER: runner
+          LAB_USER: labadmin
           LAB_PASS: LabPass123!
         run: ./od_probe
       - name: Capture opendirectoryd logs (verbatim sqlite failures)
