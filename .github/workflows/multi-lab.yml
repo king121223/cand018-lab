@@ -1,0 +1,41 @@
+name: multi-candidate-lab
+on: workflow_dispatch
+jobs:
+  lab:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build info
+        run: sw_vers
+
+      - name: Compile multi-candidate probe
+        run: |
+          clang -O2 -o multi_probe lab/multi_probe.m \
+            -framework Foundation -framework AppKit \
+            -framework OpenDirectory -framework CFOpenDirectory \
+            -lsandbox -arch arm64
+
+      - name: Run ALL candidate probes (unprivileged)
+        run: |
+          ./multi_probe multi_probe_results.txt
+          cat multi_probe_results.txt
+
+      - name: Capture opendirectoryd logs
+        run: |
+          log show --last 5m --predicate 'process == "opendirectoryd" OR process == "aned" OR process == "mediaremoted" OR process == "gamepolicyd" OR process == "modelmanagerd"' --style compact > daemon_logs.txt 2>/dev/null || true
+          grep -icE "denied|rejected|error|fail" daemon_logs.txt || echo "0 errors visible"
+          head -50 daemon_logs.txt || true
+
+      - name: Capture system daemon states
+        run: |
+          for d in modelmanagerd gamepolicyd mediaremoted clocksyncd spindump tailspind secinitd aned; do
+            echo "-- $d: $(pgrep -x $d | head -1) (runs: $(launchctl print system/com.apple.$d 2>/dev/null | grep -oE 'runs = [0-9]+' || echo 'n/a'))"
+          done
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: multi-lab-evidence
+          path: |
+            multi_probe_results.txt
+            daemon_logs.txt
