@@ -13,7 +13,7 @@ jobs:
         run: |
           clang -O2 -o multi_probe lab/multi_probe.m \
             -framework Foundation -framework AppKit \
-            -framework OpenDirectory -framework CFOpenDirectory \
+            -framework OpenDirectory \
             -lsandbox -arch arm64
 
       - name: Run ALL candidate probes (unprivileged)
